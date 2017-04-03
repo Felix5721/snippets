@@ -3,6 +3,7 @@ Description=Service that checks if vpn is up
 After=network.target
 After=suspend.target
 
+[Service]
 ExecStart=/usr/local/bin/vpn_check dijkstra
 
 [Install]
