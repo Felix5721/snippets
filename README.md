@@ -1,5 +1,3 @@
-### Zsh Snippets
+### Snippets
 
-```source <snippet>```
-
-Some short automatition task to make life more comfortable...
+These is a repository of small code or configuration snippets, mostly for managing my linux systems
