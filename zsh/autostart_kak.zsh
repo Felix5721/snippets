@@ -5,3 +5,4 @@ if [[ $(kak -l | grep $sessionname) == $sessionname ]]; then
 else
 	kak -d -s $sessionname
 fi
+export KAKSESS=$sessionname
