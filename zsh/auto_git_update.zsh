@@ -1,3 +1,4 @@
+#!/bin/zsh
 if [[ $(git status | grep "nothing to commit") == "nothing to commit, working tree clean" ]]; then
 	git pull
 else
