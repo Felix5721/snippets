@@ -17,27 +17,36 @@ class NetworkattachListener:
 		self.wireless = self.system_bus.get(SYSTEMD, self.sysmanager.GetUnit(WIRELESS_SERVICE))
 
 		self.wired.PropertiesChanged.connect(self.worker)
+		if self.isRoutable(self.wired.Get(NETWORKD + ".Link", "OperationalState")):
+			self.WirelessOff()
+		else:
+			self.WirelessOn()
+
+	def isRoutable(self, op_state):
+			if(op_state == 'no-carrier'):
+				return False
+			elif(op_state == 'routable'):
+				return True
 
 	def worker(self, interface, changed, inv):
 		if "OperationalState" in changed.keys():
-			if(changed["OperationalState"] == 'no-carrier'):
-				self.WirelessOn()
-			elif(changed["OperationalState"] == 'routable'):
+			if self.isRoutable(changed["OperationalState"]):
 				self.WirelessOff()
+			else:
+				self.WirelessOn()
 
 	def getWirelessState(self):
 		return self.wireless.Get(SYSTEMD + ".Unit", "ActiveState")
 
 	def setWireless(self, status):
-			state = "active" if status == True else "inactive"
-			if self.getWirelessState() != state:
-				if status:
-					self.sysmanager.StartUnit(WIRELESS_SERVICE, "replace")
-					self.sysmanager.StartUnit(VPN, "replace")
-				else:
-					self.sysmanager.StopUnit(WIRELESS_SERVICE, "fail")
-					self.sysmanager.StartUnit(VPN, "replace")
-					pass
+		state = "active" if status == True else "inactive"
+		if self.getWirelessState() != state:
+			if status:
+				self.sysmanager.StartUnit(WIRELESS_SERVICE, "replace")
+				self.sysmanager.StartUnit(VPN, "replace")
+			else:
+				self.sysmanager.StopUnit(WIRELESS_SERVICE, "fail")
+				self.sysmanager.StartUnit(VPN, "replace")
 
 	def WirelessOn(self):
 		print("Turn Wifi on")

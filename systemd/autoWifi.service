@@ -1,0 +1,10 @@
+[Unit]
+Description=Auto toggle Wifi
+Wants=network.target
+Before=network.target
+
+[Service]
+ExecStart=/usr/local/bin/autotogglewifi
+
+[Install]
+WantedBy=multi-user.target

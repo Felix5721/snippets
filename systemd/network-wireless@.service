@@ -1,7 +1,6 @@
 [Unit]
 Description=Wireless network connectivity (%i)
 Wants=network.target
-Before=network.target
 BindsTo=sys-subsystem-net-devices-%i.device
 After=sys-subsystem-net-devices-%i.device
 
