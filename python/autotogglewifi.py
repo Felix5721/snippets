@@ -23,10 +23,10 @@ class NetworkattachListener:
 			self.WirelessOn()
 
 	def isRoutable(self, op_state):
-			if(op_state == 'no-carrier'):
-				return False
-			elif(op_state == 'routable'):
-				return True
+		if(op_state == 'no-carrier'):
+			return False
+		elif(op_state == 'routable'):
+			return True
 
 	def worker(self, interface, changed, inv):
 		if "OperationalState" in changed.keys():
