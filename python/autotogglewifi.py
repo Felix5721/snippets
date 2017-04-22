@@ -43,10 +43,9 @@ class NetworkattachListener:
 		if self.getWirelessState() != state:
 			if status:
 				self.sysmanager.StartUnit(WIRELESS_SERVICE, "replace")
-				self.sysmanager.StartUnit(VPN, "replace")
 			else:
 				self.sysmanager.StopUnit(WIRELESS_SERVICE, "fail")
-				self.sysmanager.StartUnit(VPN, "replace")
+			self.sysmanager.StartUnit(VPN, "replace")
 
 	def WirelessOn(self):
 		print("Turn Wifi on")
