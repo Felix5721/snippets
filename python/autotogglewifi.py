@@ -3,7 +3,7 @@ from pydbus import SystemBus
 from gi.repository import GLib
 
 WIRELESS_SERVICE = "network-wireless@wlp4s0.service"
-WIRED = "/org/freedesktop/network1/link/_32"
+WIRED = "/org/freedesktop/network1/link/_33"
 VPN = "vpn_checker.service"
 SYSTEMD = "org.freedesktop.systemd1"
 NETWORKD = "org.freedesktop.network1"
