@@ -1,9 +1,11 @@
 #!/bin/python3
+import subprocess
+import re
 from pydbus import SystemBus
 from gi.repository import GLib
 
 WIRELESS_SERVICE = "network-wireless@wlp4s0.service"
-WIRED = "/org/freedesktop/network1/link/_33"
+WIRED = "/org/freedesktop/network1/link/_3"
 VPN = "vpn_checker.service"
 SYSTEMD = "org.freedesktop.systemd1"
 NETWORKD = "org.freedesktop.network1"
@@ -13,7 +15,7 @@ class NetworkattachListener:
 		self.system_bus = SystemBus()
 		self.systemd= self.system_bus.get(SYSTEMD)
 		self.sysmanager = self.systemd[".Manager"]
-		self.wired = self.system_bus.get(NETWORKD, WIRED);
+		self.wired = self.system_bus.get(NETWORKD, WIRED+str(self.getWiredNum()));
 		self.wireless = self.system_bus.get(SYSTEMD, self.sysmanager.GetUnit(WIRELESS_SERVICE))
 
 		self.wired.PropertiesChanged.connect(self.worker)
@@ -21,6 +23,14 @@ class NetworkattachListener:
 			self.WirelessOff()
 		else:
 			self.WirelessOn()
+
+	def getWiredNum(self):
+    		#I know this isn't a nice way to do it, but I didn't find any other documentation on how to get his down
+    		#If you do now how to get this information properly, please let me know
+		linkn = subprocess.run(['networkctl', 'list', 'enp0s25'], stdout=subprocess.PIPE).stdout.decode("utf-8")
+		linkn = re.search("(?<=\n).*(?= enp0s25)", linkn).group(0)
+		return int(linkn)
+
 
 	def isRoutable(self, op_state):
 		if(op_state == 'no-carrier'):
