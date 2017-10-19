@@ -6,7 +6,7 @@ from gi.repository import GLib
 
 WIRELESS_SERVICE = "network-wireless@wlp4s0.service"
 WIRED = "/org/freedesktop/network1/link/_3"
-VPN = "vpn_checker.service"
+VPN = "openvpn-client@dijkstra.service"
 SYSTEMD = "org.freedesktop.systemd1"
 NETWORKD = "org.freedesktop.network1"
 
@@ -15,20 +15,22 @@ class NetworkattachListener:
 		self.system_bus = SystemBus()
 		self.systemd= self.system_bus.get(SYSTEMD)
 		self.sysmanager = self.systemd[".Manager"]
-		self.wired = self.system_bus.get(NETWORKD, WIRED+str(self.getWiredNum()));
-		self.wireless = self.system_bus.get(SYSTEMD, self.sysmanager.GetUnit(WIRELESS_SERVICE))
+		self.wired_iface = self.system_bus.get(NETWORKD, WIRED+str(self.getWiredNum('enp0s25')));
+		self.wireless_iface = self.system_bus.get(NETWORKD, WIRED+str(self.getWiredNum('wlp4s0')));
+		self.wireless_srv = self.system_bus.get(SYSTEMD, self.sysmanager.GetUnit(WIRELESS_SERVICE))
 
-		self.wired.PropertiesChanged.connect(self.worker)
-		if self.isRoutable(self.wired.Get(NETWORKD + ".Link", "OperationalState")):
+		self.wired_iface.PropertiesChanged.connect(self.worker_wlan)
+		self.wireless_iface.PropertiesChanged.connect(self.worker_vpn)
+		if self.isRoutable(self.wired_iface.Get(NETWORKD + ".Link", "OperationalState")):
 			self.WirelessOff()
 		else:
 			self.WirelessOn()
 
-	def getWiredNum(self):
+	def getWiredNum(self, iface_name):
     		#I know this isn't a nice way to do it, but I didn't find any other documentation on how to get his down
     		#If you do now how to get this information properly, please let me know
-		linkn = subprocess.run(['networkctl', 'list', 'enp0s25'], stdout=subprocess.PIPE).stdout.decode("utf-8")
-		linkn = re.search("(?<=\n).*(?= enp0s25)", linkn).group(0)
+		linkn = subprocess.run(['networkctl', 'list', iface_name], stdout=subprocess.PIPE).stdout.decode("utf-8")
+		linkn = re.search("(?<=\n).*(?= "+iface_name+")", linkn).group(0)
 		return int(linkn)
 
 
@@ -38,7 +40,13 @@ class NetworkattachListener:
 		elif(op_state == 'routable'):
 			return True
 
-	def worker(self, interface, changed, inv):
+	def worker_vpn(self, interface, changed, inv):
+		if "OperationalState" in changed.keys():
+			if self.isRoutable(changed["OperationalState"]):
+				self.sysmanager.StopUnit(VPN, "fail")
+				self.sysmanager.StartUnit(VPN, "replace")
+
+	def worker_wlan(self, interface, changed, inv):
 		if "OperationalState" in changed.keys():
 			if self.isRoutable(changed["OperationalState"]):
 				self.WirelessOff()
@@ -46,7 +54,7 @@ class NetworkattachListener:
 				self.WirelessOn()
 
 	def getWirelessState(self):
-		return self.wireless.Get(SYSTEMD + ".Unit", "ActiveState")
+		return self.wireless_srv.Get(SYSTEMD + ".Unit", "ActiveState")
 
 	def setWireless(self, status):
 		state = "active" if status == True else "inactive"
@@ -55,7 +63,8 @@ class NetworkattachListener:
 				self.sysmanager.StartUnit(WIRELESS_SERVICE, "replace")
 			else:
 				self.sysmanager.StopUnit(WIRELESS_SERVICE, "fail")
-			self.sysmanager.StartUnit(VPN, "replace")
+				self.sysmanager.StopUnit(VPN, "fail")
+				self.sysmanager.StartUnit(VPN, "replace")
 
 	def WirelessOn(self):
 		print("Turn Wifi on")

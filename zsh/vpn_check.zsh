@@ -7,7 +7,7 @@ while [[ $vpn_stat = "off" ]]; do
 	inet_stat=$(has_internet)
 	if [[ $inet_stat = "Online" ]]; then
 		pip=$(curl -sH "Host: ip4.nnev.de" 79.140.42.102)
-		if [[ $pip = "37.120.184.171" ]]; then
+		if [[ $pip = "185.65.134.111" ]]; then
 		else
 			systemctl restart openvpn-client@$vpn_config.service
 		fi
